@@ -115,6 +115,27 @@ struct TimelineView: View {
                         .padding(.horizontal)
                     }
                     
+                    HStack(alignment: .center, spacing: 15) {
+                        Text("Mistakes")
+                            .font(.headline)
+                            .foregroundColor(Theme.primary)
+                        
+                        Spacer()
+                        
+                        NavigationLink(destination: TimelineMistakesView(title: timeline.examName, dailyQuizzes: sortedQuizzes)) {
+                            Text("Review")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 25)
+                                .padding(.vertical, 10)
+                                .background(Theme.primary)
+                                .cornerRadius(20)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    Divider()
+                    
                     // All Quizzes Timeline (Grouped by Day)
                     VStack(alignment: .leading, spacing: 15) {
                         Text("Quiz Timeline")
@@ -396,7 +417,7 @@ struct TimelineView_Previews: PreviewProvider {
         let timeline = ExamTimeline(
             examName: "Sample Exam",
             examBrief: "A short description of the sample exam.",
-            examDate: Date(),
+            examDate: Date()
         )
         
         let today = Date()

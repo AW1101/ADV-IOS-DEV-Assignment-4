@@ -107,7 +107,7 @@ struct HomeView: View {
                                     }
                                 }
                                 .buttonStyle(Theme.CircularButton(backgroundColor: Theme.secondary))
-                                
+                                                                
                                 Button(action: {
                                     showingSettings = true
                                 }) {
