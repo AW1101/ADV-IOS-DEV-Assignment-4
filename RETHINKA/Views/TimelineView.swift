@@ -3,7 +3,7 @@
 //  RETHINKA
 //
 //  Created by Aston Walsh on 11/10/2025.
-//
+//  Modified by YUDONG LU on 19/10/2025.
 
 import SwiftUI
 import SwiftData
@@ -154,8 +154,6 @@ struct TimelineView: View {
                         }
                         .padding(.horizontal)
                     }
-                    
-
                     
                     // All Quizzes Timeline (Grouped by Day)
                     VStack(alignment: .leading, spacing: 15) {

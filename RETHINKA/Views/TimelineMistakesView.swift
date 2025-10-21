@@ -6,20 +6,27 @@
 //
 
 import SwiftUI
+import SwiftData
 
 // Displays the wrong question in one ExamTimeline.
 struct TimelineMistakesView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @State private var mistakes: [QuizQuestion] = []
+    @State private var isReinforcing: Bool = false
+    @State private var reinforceQuestions: [QuizQuestion] = []
+    @State private var showingError: Bool = false
+    @State private var errorMessage: String = ""
+    
     var title: String
     var dailyQuizzes: [DailyQuiz]
-    @State var mistakes: [QuizQuestion] = []
         
     var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
             ScrollView {
                 if mistakes.isEmpty {
+                    // Display when there are no wrong answer
                     VStack {
                         Text("No mistakes in '\(title)'!")
                             .font(.title2)
@@ -33,18 +40,73 @@ struct TimelineMistakesView: View {
                 else {
                     VStack(spacing: 25) {
                         ForEach(Array(mistakes.enumerated()), id: \.element.id) { index, question in
-                            if !question.isAnsweredCorrectly {
-                                QuestionReviewCard(question: question, questionNumber: index + 1)
-                                    .padding(.horizontal)
-                            }
+                            QuestionReviewCard(question: question, questionNumber: index + 1)
+                                .padding(.horizontal)
+                            
+                            // Generate questions with same topic and navigate to ReinforceTopicView when it's successful
+                            Button(action: {
+                                generateReinforceQuestions(mistake: question)
+                            }, label: {
+                                Text("Do Similar Questions")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 25)
+                                    .padding(.vertical, 10)
+                                    .background(Theme.primary)
+                                    .cornerRadius(20)
+                            })
                         }
                     }
                 }
             }
         }
-        .navigationTitle("Mistakes in \"\(title)\"")
+        .navigationTitle("Wrong Answers in \"\(title)\"")
         .onAppear() {
             mistakes = dailyQuizzes.flatMap(\.questions).filter { !$0.isAnsweredCorrectly && $0.isAnswered }
+        }
+        .navigationDestination(isPresented: $isReinforcing) {
+            ReinforceTopicView(questions: reinforceQuestions)
+        }
+        .alert("Error", isPresented: $showingError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
+    }
+    
+    private func generateReinforceQuestions(mistake: QuizQuestion) {
+        AIQuestionGenerator.shared.generateVariants(for: mistake) { result in
+            switch result {
+            case .success(let generatedQuestions):
+                DispatchQueue.main.async {
+                    let converted = generatedQuestions.map { gen in
+                        QuizQuestion(
+                            question: gen.question,
+                            options: gen.options,
+                            correctAnswerIndex: gen.correctAnswerIndex,
+                            topic: mistake.topic,
+                            difficulty: 1,
+                            type: gen.type
+                        )
+                    }
+                    self.reinforceQuestions = converted
+                    // Insert each generated question individually into SwiftData
+                    for question in self.reinforceQuestions {
+                        modelContext.insert(question)
+                    }
+                    do {
+                        try modelContext.save()
+                        self.isReinforcing = true
+                    } catch {
+                        errorMessage = "Failed to create reinforce questions: \(error.localizedDescription)"
+                        self.isReinforcing = false
+                        showingError = true
+                        return
+                    }
+                }
+            case .failure(let error):
+                print("Error generating variants: \(error)")
+            }
         }
     }
 }
@@ -146,3 +208,4 @@ struct MistakeReviewView_Previews: PreviewProvider {
         TimelineMistakesView(title: "Science", dailyQuizzes: samepleQuizzes)
     }
 }
+
