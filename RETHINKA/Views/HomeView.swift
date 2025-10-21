@@ -37,11 +37,10 @@ struct HomeView: View {
                                 .fill(Theme.primary)
                                 .frame(width: 100, height: 100)
                                 .overlay(
-                                    Image(systemName: "brain.head.profile")
+                                    Image("rethinkalogo")
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: 50, height: 50)
-                                        .foregroundColor(.white)
+                                        .frame(width: 80, height: 80)
                                 )
                             
                             Text("RETHINKA")
