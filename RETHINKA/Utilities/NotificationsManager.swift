@@ -3,43 +3,90 @@
 //  RETHINKA
 //
 //  Created by Aston Walsh on 11/10/2025.
-//
+// (Contributed to by Omar Alkilani via fork, additions made were slightly altered/simplified and integrated into main code)
 
 import Foundation
 import UserNotifications
+import SwiftData
 
-// Have to rework a lot of this myself, still pretty stock standard/wrong/from a template, essentially unused so it'll all have to be done later
+// Manages all app notifications including daily reminders and badge counts
 class NotificationManager {
     static let shared = NotificationManager()
     
+    private let dailyReminderIdentifier = "daily-quiz-reminder"
+    
     private init() {}
     
-    func requestAuthorization() {
+    func requestAuthorization(completion: ((Bool) -> Void)? = nil) {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            if let error = error {
+                print("Notification permission error: \(error.localizedDescription)")
+            }
+            
             if granted {
                 print("Notification permission granted")
-            } else if let error = error {
-                print("Notification permission error: \(error.localizedDescription)")
+            } else {
+                print("Notification permission denied")
+            }
+            
+            completion?(granted)
+        }
+    }
+    
+    // Schedule repeating daily notification at specified hour
+    func scheduleDailyReminders(at hour: Int) {
+        cancelAllReminders()
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Daily Quiz Reminder"
+        content.body = "You have incomplete quizzes today. Keep up the momentum!"
+        content.sound = .default
+        content.badge = 1
+        content.categoryIdentifier = "DAILY_REMINDER"
+        
+        var dateComponents = DateComponents()
+        dateComponents.hour = hour
+        dateComponents.minute = 0
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        
+        let request = UNNotificationRequest(
+            identifier: dailyReminderIdentifier,
+            content: content,
+            trigger: trigger
+        )
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error scheduling daily reminder: \(error.localizedDescription)")
+            } else {
+                print("Daily reminder scheduled for \(hour):00")
             }
         }
     }
     
+    func cancelAllReminders() {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [dailyReminderIdentifier])
+        UNUserNotificationCenter.current().setBadgeCount(0)
+        print("Cancelled all daily reminders")
+    }
+    
+    // Legacy method for timeline-specific notifications
     func scheduleDailyQuizNotification(for timeline: ExamTimeline) {
         let center = UNUserNotificationCenter.current()
         
-        // Remove existing notifications for this timeline
         center.removePendingNotificationRequests(withIdentifiers: [timeline.id.uuidString])
         
         for quiz in timeline.dailyQuizzes where !quiz.isCompleted {
             let content = UNMutableNotificationContent()
-            content.title = "Daily Quiz Ready!"
+            content.title = "Quiz Available"
             content.body = "Complete today's quiz for \(timeline.examName)"
             content.sound = .default
             content.badge = 1
             
             let calendar = Calendar.current
             var dateComponents = calendar.dateComponents([.year, .month, .day], from: quiz.date)
-            dateComponents.hour = 9 // 9 AM notification
+            dateComponents.hour = 9
             dateComponents.minute = 0
             
             let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
@@ -60,5 +107,10 @@ class NotificationManager {
             let identifiersToRemove = requests.filter { $0.identifier.hasPrefix(timelineId.uuidString) }.map { $0.identifier }
             center.removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
         }
+    }
+    
+    // Update app icon badge with incomplete quiz count
+    func updateBadgeCount(incompleteQuizCount: Int) {
+        UNUserNotificationCenter.current().setBadgeCount(incompleteQuizCount)
     }
 }

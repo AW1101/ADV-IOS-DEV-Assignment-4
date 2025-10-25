@@ -5,7 +5,6 @@
 //  Created by Aston Walsh on 12/10/2025.
 //  Modified by YUDONG LU on 20/10/2025
 
-// Works somewhat well, i've previously had issues with it generating the wrong number of questions/answers but i think that's fixed, there's still a lot left to rework (text field questions are particularly vague, other questions can be a bit simplistic ((not that bad really, to be expected sometimes)), difficulty stuff isnt implemented in any way yet etc.)
 import Foundation
 
 struct GeneratedQuestion: Codable {
@@ -15,13 +14,51 @@ struct GeneratedQuestion: Codable {
     let type: String // "multipleChoice" or "textField"
 }
 
+// Singleton service for generating AI-powered quiz questions using OpenAI API
 final class AIQuestionGenerator {
     static let shared = AIQuestionGenerator()
     
     private let apiKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"]
-    private let timeout: TimeInterval = 60.0 // Increased timeout
+    private let timeout: TimeInterval = 60.0
     
-    // Main generator
+    private var currentDifficulty: String {
+        UserDefaults.standard.string(forKey: "difficultyLevel") ?? "Medium"
+    }
+    
+    // Difficulty-specific prompt instructions for AI generation
+    private var difficultyInstructions: String {
+        switch currentDifficulty {
+        case "Easy":
+            return """
+            DIFFICULTY: EASY
+            - Use straightforward language
+            - Focus on basic concepts and definitions
+            - Questions should test recall and basic understanding
+            - Avoid complex scenarios or multi-step reasoning
+            - Example: "What is the definition of X?"
+            """
+        case "Hard":
+            return """
+            DIFFICULTY: HARD
+            - Use complex scenarios requiring analysis
+            - Questions should test application and synthesis
+            - Include multi-step reasoning and edge cases
+            - Require deep understanding, not just memorization
+            - Example: "In scenario X, what would happen if Y changed, and why?"
+            """
+        default:
+            return """
+            DIFFICULTY: MEDIUM
+            - Balance between recall and application
+            - Questions should test understanding and basic application
+            - Include some scenario-based questions
+            - Require comprehension beyond simple memorization
+            - Example: "How would you apply concept X in situation Y?"
+            """
+        }
+    }
+    
+    // Generate multiple topics worth of quiz questions
     func generateTopicQuizzes(
         examBrief: String,
         notes: [String],
@@ -36,7 +73,6 @@ final class AIQuestionGenerator {
             return
         }
         
-        // Combine the exam brief + notes for context (still unsure about this, again i will rework it all later)
         let combinedInput = """
         EXAM BRIEF:
         \(examBrief.prefix(1500))
@@ -45,16 +81,18 @@ final class AIQuestionGenerator {
         \(notes.joined(separator: "\n").prefix(1000))
         """
         
-        // Simplified prompt for faster response
         let systemPrompt = """
         You are a quiz generator. Generate exactly \(topicsWanted) topics with EXACTLY \(questionsPerTopic) questions each.
+        
+        \(difficultyInstructions)
         
         CRITICAL RULES:
         - EVERY question must have EXACTLY 4 options in the options array
         - For multipleChoice: all 4 options must be distinct answers
-        - For textField: options[0] = the ONE correct answer (specific), options[1-3] = "" (empty strings)
+        - For textField: options[0] = the ONE correct answer (highly specific one or two word answers, should have absolutely no room for interpretation), options[1-3] = "" (empty strings)
         - correctAnswerIndex is ALWAYS 0 for textField questions
         - Mix 70% multipleChoice and 30% textField
+        - ALL questions must match the specified difficulty level
         
         Output MUST be valid JSON:
         {
@@ -83,7 +121,7 @@ final class AIQuestionGenerator {
         """
         
         let userPrompt = """
-        Generate \(topicsWanted) UNIQUE topics (avoid these: \(existingTopics.joined(separator: ", "))) with \(questionsPerTopic) questions based on:
+        Generate \(topicsWanted) UNIQUE topics (avoid these: \(existingTopics.joined(separator: ", "))) with \(questionsPerTopic) questions at \(currentDifficulty) difficulty based on:
         \(combinedInput)
         """
         
@@ -101,7 +139,7 @@ final class AIQuestionGenerator {
                 ["role": "user", "content": userPrompt]
             ],
             "temperature": 0.7,
-            "max_tokens": 4000 // Limit response size
+            "max_tokens": 4000
         ]
         
         do {
@@ -111,7 +149,6 @@ final class AIQuestionGenerator {
             return
         }
         
-        // Send request
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("Network error: \(error.localizedDescription)")
@@ -125,18 +162,16 @@ final class AIQuestionGenerator {
                 return
             }
             
-            // Debug: Print raw response
             if let rawString = String(data: data, encoding: .utf8) {
                 print("API Response (first 500 chars): \(rawString.prefix(500))")
             }
             
             do {
                 let decoded = try self.decodeResponse(data)
-                print("Successfully generated \(decoded.keys.count) topics")
+                print("Successfully generated \(decoded.keys.count) topics at \(self.currentDifficulty) difficulty")
                 completion(.success(decoded))
             } catch {
                 print("JSON parse failed: \(error.localizedDescription)")
-                // Try to extract partial data
                 if let partialData = try? self.attemptPartialParse(data) {
                     print("Using partial data")
                     completion(.success(partialData))
@@ -150,6 +185,7 @@ final class AIQuestionGenerator {
         task.resume()
     }
     
+    // Parse and validate API response
     private func decodeResponse(_ data: Data) throws -> [String: [GeneratedQuestion]] {
         struct APIResponse: Codable {
             struct Choice: Codable {
@@ -166,7 +202,7 @@ final class AIQuestionGenerator {
             throw NSError(domain: "Missing content", code: -2)
         }
         
-        // Clean the content (remove markdown code blocks if present)
+        // Strip code fences if present
         var cleanedContent = content
         if cleanedContent.contains("```json") {
             cleanedContent = cleanedContent
@@ -189,26 +225,24 @@ final class AIQuestionGenerator {
         
         let root = try JSONDecoder().decode(Root.self, from: jsonData)
         
-        // VALIDATE (Ensure all topics have correct question count and format)
         var validatedTopics: [String: [GeneratedQuestion]] = [:]
         
+        // Validate each question meets requirements
         for topicBlock in root.topics {
             var validQuestions: [GeneratedQuestion] = []
             
             for question in topicBlock.questions {
-                // Validate: Must have exactly 4 options
                 guard question.options.count == 4 else {
                     print("Question skipped: Wrong option count (\(question.options.count))")
                     continue
                 }
                 
-                // Validate: correctAnswerIndex must be 0-3
                 guard question.correctAnswerIndex >= 0 && question.correctAnswerIndex < 4 else {
                     print("Question skipped: Invalid answer index")
                     continue
                 }
                 
-                // Validate: textField questions must have correctAnswerIndex = 0
+                // Ensure textField questions have correctAnswerIndex = 0
                 if question.type == "textField" && question.correctAnswerIndex != 0 {
                     var fixedQuestion = question
                     fixedQuestion.correctAnswerIndex = 0
@@ -218,13 +252,11 @@ final class AIQuestionGenerator {
                 }
             }
             
-            // Only include topic if it has questions
             if !validQuestions.isEmpty {
                 validatedTopics[topicBlock.topic] = validQuestions
             }
         }
         
-        // If we don't have enough topics/questions, throw error to trigger fallback
         if validatedTopics.isEmpty {
             throw NSError(domain: "No valid questions generated", code: -4)
         }
@@ -233,15 +265,10 @@ final class AIQuestionGenerator {
     }
     
     private func attemptPartialParse(_ data: Data) throws -> [String: [GeneratedQuestion]]? {
-        // Try to extract whatever possible from malformed response
-        guard let jsonString = String(data: data, encoding: .utf8) else { return nil }
-        
-        // Look for topic blocks even if incomplete
-        // This is still pretty simple, may not work for all cases
         return nil
     }
     
-    // Fallback generator (may not be necessary, might have to rework this)
+    // Generate local placeholder questions when API fails
     private func localFallbackTopics(count: Int, questionsPerTopic: Int) -> [String: [GeneratedQuestion]] {
         let sampleTopics = [
             "Core Concepts",
@@ -260,15 +287,14 @@ final class AIQuestionGenerator {
             let topic = sampleTopics[i % sampleTopics.count]
             var questions: [GeneratedQuestion] = []
             
-            // Generate exactly questionsPerTopic questions
             for j in 1...questionsPerTopic {
-                let isTextField = (j % 4 == 0) // Every 4th question is text field 
+                let isTextField = (j % 4 == 0)
                 
                 if isTextField {
                     questions.append(GeneratedQuestion(
-                        question: "Define or explain this key concept from \(topic.lowercased()): (Question \(j))",
+                        question: getDifficultyAdjustedTextQuestion(topic: topic, number: j),
                         options: [
-                            "A comprehensive explanation covering main points and examples",
+                            getDifficultyAdjustedAnswer(topic: topic),
                             "",
                             "",
                             ""
@@ -278,7 +304,7 @@ final class AIQuestionGenerator {
                     ))
                 } else {
                     questions.append(GeneratedQuestion(
-                        question: "Which of the following best describes \(topic.lowercased())? (Question \(j))",
+                        question: getDifficultyAdjustedMultipleChoiceQuestion(topic: topic, number: j),
                         options: [
                             "Option A: First statement about \(topic.lowercased())",
                             "Option B: Second statement about \(topic.lowercased())",
@@ -297,6 +323,7 @@ final class AIQuestionGenerator {
         return dict
     }
     
+    // Generate variant questions for reinforcement practice
     func generateVariants(for question: QuizQuestion, completion: @escaping (Result<[GeneratedQuestion], Error>) -> Void) {
         guard let apiKey = apiKey, !apiKey.isEmpty else {
             print("No API key found for variant generation.")
@@ -357,7 +384,6 @@ final class AIQuestionGenerator {
                 return
             }
 
-            // 1) Decode Chat Completions envelope
             struct ChatResponse: Decodable {
                 struct Choice: Decodable {
                     struct Message: Decodable {
@@ -375,7 +401,6 @@ final class AIQuestionGenerator {
                     return
                 }
 
-                // 2) Strip code fences if present
                 var cleanedContent = content
                 if cleanedContent.contains("```json") || cleanedContent.contains("```") {
                     cleanedContent = cleanedContent
@@ -384,7 +409,6 @@ final class AIQuestionGenerator {
                         .trimmingCharacters(in: .whitespacesAndNewlines)
                 }
 
-                // 3) Decode the content as an array of GeneratedQuestion
                 guard let variantsData = cleanedContent.data(using: .utf8) else {
                     completion(.failure(NSError(domain: "Invalid UTF8", code: -3)))
                     return
@@ -393,7 +417,6 @@ final class AIQuestionGenerator {
                 let variants = try JSONDecoder().decode([GeneratedQuestion].self, from: variantsData)
                 completion(.success(variants))
             } catch {
-                // Helpful debug print if needed
                 if let rawString = String(data: data, encoding: .utf8) {
                     print("Variant raw response (first 500): \(rawString.prefix(500))")
                 }
@@ -402,5 +425,39 @@ final class AIQuestionGenerator {
         }
 
         task.resume()
+    }
+    
+    // Helper functions for difficulty-adjusted fallback questions
+    private func getDifficultyAdjustedTextQuestion(topic: String, number: Int) -> String {
+        switch currentDifficulty {
+        case "Easy":
+            return "Define or list key points about \(topic.lowercased()): (Question \(number))"
+        case "Hard":
+            return "Analyze and evaluate the implications of \(topic.lowercased()) in a complex scenario: (Question \(number))"
+        default:
+            return "Explain and apply the concepts of \(topic.lowercased()): (Question \(number))"
+        }
+    }
+    
+    private func getDifficultyAdjustedMultipleChoiceQuestion(topic: String, number: Int) -> String {
+        switch currentDifficulty {
+        case "Easy":
+            return "What is \(topic.lowercased())? (Question \(number))"
+        case "Hard":
+            return "In a complex scenario involving \(topic.lowercased()), which approach would be most effective and why? (Question \(number))"
+        default:
+            return "Which of the following best describes \(topic.lowercased())? (Question \(number))"
+        }
+    }
+    
+    private func getDifficultyAdjustedAnswer(topic: String) -> String {
+        switch currentDifficulty {
+        case "Easy":
+            return "A basic explanation of \(topic.lowercased()) covering main points"
+        case "Hard":
+            return "A comprehensive analysis of \(topic.lowercased()) with examples, implications, and edge cases"
+        default:
+            return "A comprehensive explanation of \(topic.lowercased()) covering main points and examples"
+        }
     }
 }

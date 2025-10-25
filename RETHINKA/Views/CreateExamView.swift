@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 struct CreateExamView: View {
     @Environment(\.modelContext) private var modelContext
@@ -40,23 +41,22 @@ struct CreateExamView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 25) {
-                            // Header
                             VStack(spacing: 10) {
                                 Circle()
-                                    .fill(Theme.primary)
+                                    .fill(.white)
                                     .frame(width: 80, height: 80)
                                     .overlay(
                                         Image(systemName: "doc.text.fill")
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 40, height: 40)
-                                            .foregroundColor(.white)
+                                            .foregroundColor(Theme.primary)
                                     )
                                 
                                 Text("Create Exam Timeline")
                                     .font(.title2)
                                     .fontWeight(.bold)
-                                    .foregroundColor(Theme.primary)
+                                    .foregroundColor(.white)
                             }
                             .padding(.top)
                             
@@ -64,12 +64,11 @@ struct CreateExamView: View {
                             VStack(alignment: .leading, spacing: 10) {
                                 Label("Exam Name", systemImage: "pencil.circle.fill")
                                     .font(.headline)
-                                    .foregroundColor(Theme.primary)
+                                    .foregroundColor(.white)
                                 
                                 TextField("e.g., iOS Development Final", text: $examName)
-                                    .textFieldStyle(.roundedBorder)
                                     .padding()
-                                    .background(Theme.cardBackground)
+                                    .background(.white)
                                     .cornerRadius(15)
                             }
                             .padding(.horizontal)
@@ -79,7 +78,7 @@ struct CreateExamView: View {
                                 HStack {
                                     Label("Exam Brief", systemImage: "doc.circle.fill")
                                         .font(.headline)
-                                        .foregroundColor(Theme.primary)
+                                        .foregroundColor(.white)
                                     
                                     Text("(Required)")
                                         .font(.caption)
@@ -89,11 +88,11 @@ struct CreateExamView: View {
                                 TextEditor(text: $examBrief)
                                     .frame(minHeight: 150)
                                     .padding(8)
-                                    .background(Theme.cardBackground)
+                                    .background(.white)
                                     .cornerRadius(15)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 15)
-                                            .stroke(Theme.secondary.opacity(0.3), lineWidth: 1)
+                                            .stroke(Color.clear, lineWidth: 0)
                                     )
                             }
                             .padding(.horizontal)
@@ -102,13 +101,14 @@ struct CreateExamView: View {
                             VStack(alignment: .leading, spacing: 10) {
                                 Label("Exam Date", systemImage: "calendar.circle.fill")
                                     .font(.headline)
-                                    .foregroundColor(Theme.primary)
+                                    .foregroundColor(.white)
                                 
                                 DatePicker("Select Date", selection: $examDate, in: Date()..., displayedComponents: .date)
                                     .datePickerStyle(.graphical)
                                     .padding()
-                                    .background(Theme.cardBackground)
+                                    .background(.white)
                                     .cornerRadius(15)
+                                    .colorScheme(.light)
                             }
                             .padding(.horizontal)
                             
@@ -117,11 +117,11 @@ struct CreateExamView: View {
                                 HStack {
                                     Label("Course Notes", systemImage: "note.text")
                                         .font(.headline)
-                                        .foregroundColor(Theme.primary)
+                                        .foregroundColor(.white)
                                     
                                     Text("(Optional)")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(.white.opacity(0.7))
                                     
                                     Spacer()
                                     
@@ -130,17 +130,17 @@ struct CreateExamView: View {
                                     }) {
                                         Image(systemName: "plus.circle.fill")
                                             .font(.title3)
-                                            .foregroundColor(Theme.secondary)
+                                            .foregroundColor(.white)
                                     }
                                 }
                                 
                                 if notes.isEmpty {
                                     Text("No notes added yet")
                                         .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(.white.opacity(0.7))
                                         .frame(maxWidth: .infinity, alignment: .center)
                                         .padding()
-                                        .background(Theme.cardBackground)
+                                        .background(Color.white.opacity(0.15))
                                         .cornerRadius(15)
                                 } else {
                                     ForEach(Array(notes.enumerated()), id: \.element.id) { index, note in
@@ -155,21 +155,21 @@ struct CreateExamView: View {
                             // Info Box
                             HStack(spacing: 12) {
                                 Image(systemName: "info.circle.fill")
-                                    .foregroundColor(Theme.secondary)
+                                    .foregroundColor(.white)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Smart Generation")
                                         .font(.caption)
                                         .fontWeight(.bold)
-                                        .foregroundColor(Theme.primary)
+                                        .foregroundColor(.white)
                                     
                                     Text("Today's 3 quizzes will be generated now. Future quizzes generate automatically each day.")
                                         .font(.caption2)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(.white.opacity(0.8))
                                 }
                             }
                             .padding()
-                            .background(Theme.secondary.opacity(0.1))
+                            .background(Color.white.opacity(0.2))
                             .cornerRadius(15)
                             .padding(.horizontal)
                             
@@ -195,6 +195,7 @@ struct CreateExamView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(.white)
                     .disabled(isGenerating)
                 }
             }
@@ -354,7 +355,7 @@ struct CreateExamView: View {
                                 // If we got fewer than 10, pad with fallback
                                 while timeline.dailyQuizzes[quizIdx].questions.count < 10 {
                                     let paddingQ = QuizQuestion(
-                                        question: "Additional question about \(topic.lowercased()): Explain a key concept.",
+                                        question: "Explain a key concept.",
                                         options: ["Provide a detailed answer", "", "", ""],
                                         correctAnswerIndex: 0,
                                         topic: topic,
@@ -409,6 +410,10 @@ struct CreateExamView: View {
             try modelContext.save()
             NotificationManager.shared.scheduleDailyQuizNotification(for: timeline)
             
+            // Force widget to refresh immediately
+            WidgetCenter.shared.reloadAllTimelines()
+            print("App: Forced widget refresh after timeline creation")
+            
             generationProgress = 1.0
             generationStatus = "Complete!"
             
@@ -424,52 +429,35 @@ struct CreateExamView: View {
     }
 }
 
-// Supporting Views (note stuff might just replace the exam brief stuff later or just be removed entirely as mentioend before)
-
+// Supporting Views
 struct GenerationLoadingView: View {
     let progress: Double
     let status: String
     
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4)
+            Color.black.opacity(0.6)
                 .ignoresSafeArea()
             
             VStack(spacing: 30) {
-                ZStack {
-                    Circle()
-                        .stroke(Theme.primary.opacity(0.2), lineWidth: 10)
-                        .frame(width: 120, height: 120)
-                    
-                    Circle()
-                        .trim(from: 0, to: progress)
-                        .stroke(Theme.primary, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                        .frame(width: 120, height: 120)
-                        .rotationEffect(.degrees(-90))
-                        .animation(.easeInOut(duration: 0.5), value: progress)
-                    
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 40))
-                        .foregroundColor(Theme.primary)
-                }
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(2.5)
+                    .frame(width: 120, height: 120)
                 
                 VStack(spacing: 10) {
                     Text("Setting Up Your Timeline")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                     
                     Text(status)
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    Text("\(Int(progress * 100))%")
-                        .font(.headline)
-                        .foregroundColor(Theme.primary)
+                        .foregroundColor(.white.opacity(0.8))
                 }
             }
             .padding(40)
-            .background(Theme.cardBackground)
+            .background(Color.white.opacity(0.15))
             .cornerRadius(30)
             .shadow(radius: 20)
         }
@@ -484,22 +472,22 @@ struct NoteCard: View {
     var body: some View {
         HStack {
             Circle()
-                .fill(Theme.secondary)
+                .fill(.white)
                 .frame(width: 40, height: 40)
                 .overlay(
                     Text("\(index)")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(Theme.primary)
                 )
             
             VStack(alignment: .leading, spacing: 5) {
                 Text(note.title)
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.white)
                 
                 Text("\(note.content.prefix(50))\(note.content.count > 50 ? "..." : "")")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.8))
                     .lineLimit(2)
             }
             
@@ -536,28 +524,27 @@ struct AddNoteView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Note Title")
                             .font(.headline)
-                            .foregroundColor(Theme.primary)
+                            .foregroundColor(.white)
                         
                         TextField("e.g., Lecture 1: SwiftUI Basics", text: $noteTitle)
-                            .textFieldStyle(.roundedBorder)
                             .padding()
-                            .background(Theme.cardBackground)
+                            .background(.white)
                             .cornerRadius(15)
                     }
                     
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Note Content")
                             .font(.headline)
-                            .foregroundColor(Theme.primary)
+                            .foregroundColor(.white)
                         
                         TextEditor(text: $noteContent)
                             .frame(minHeight: 300)
                             .padding(8)
-                            .background(Theme.cardBackground)
+                            .background(.white)
                             .cornerRadius(15)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 15)
-                                    .stroke(Theme.secondary.opacity(0.3), lineWidth: 1)
+                                    .stroke(Color.clear, lineWidth: 0)
                             )
                     }
                     
@@ -581,11 +568,15 @@ struct AddNoteView: View {
             }
             .navigationTitle("Add Note")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Theme.background, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(.white)
                 }
             }
         }

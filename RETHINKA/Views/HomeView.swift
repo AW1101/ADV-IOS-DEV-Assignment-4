@@ -5,7 +5,7 @@
 //  Created by Aston Walsh on 11/10/2025.
 //
 
-// I need to go over the topic generation for the next-day questions creation again, need to test it further to see if it is actually going out of its way to make it different from the last (questions themselves seem to be fine/new though)
+import WidgetKit
 import Foundation
 import SwiftUI
 import SwiftData
@@ -33,7 +33,7 @@ struct HomeView: View {
                     VStack(spacing: 30) {
                         VStack(spacing: 10) {
                             Circle()
-                                .fill(Theme.primary)
+                                .fill(Color.white)
                                 .frame(width: 100, height: 100)
                                 .overlay(
                                     Image("rethinkalogo")
@@ -44,16 +44,15 @@ struct HomeView: View {
                             
                             Text("RETHINKA")
                                 .font(.system(size: 36, weight: .bold))
-                                .foregroundColor(Theme.primary)
+                                .foregroundColor(.white)
                         }
                         .padding(.top, 40)
                         
-                        // Active Timelines Summary
                         if !activeTimelines.isEmpty {
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Active Timelines")
                                     .font(.headline)
-                                    .foregroundColor(Theme.primary)
+                                    .foregroundColor(.white)
                                 
                                 ForEach(activeTimelines.prefix(3)) { timeline in
                                     NavigationLink(destination: TimelineView(timeline: timeline)) {
@@ -66,15 +65,15 @@ struct HomeView: View {
                             VStack(spacing: 15) {
                                 Image(systemName: "calendar.badge.plus")
                                     .font(.system(size: 60))
-                                    .foregroundColor(Theme.secondary.opacity(0.5))
+                                    .foregroundColor(.white.opacity(0.6))
                                 
                                 Text("No active timelines")
                                     .font(.title3)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.white.opacity(0.8))
                                 
                                 Text("Create your first exam timeline to get started")
                                     .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.white.opacity(0.7))
                                     .multilineTextAlignment(.center)
                             }
                             .padding()
@@ -82,7 +81,6 @@ struct HomeView: View {
                         
                         Spacer()
                         
-                        // Main Action Buttons
                         VStack(spacing: 20) {
                             Button(action: {
                                 showingCreateExam = true
@@ -98,7 +96,6 @@ struct HomeView: View {
                             .buttonStyle(Theme.PrimaryButton())
 
                             HStack(spacing: 16) {
-                                // Manage Timelines
                                 Button(action: {
                                     showingManageTimelines = true
                                 }) {
@@ -109,12 +106,11 @@ struct HomeView: View {
                                     .font(.headline)
                                     .frame(maxWidth: .infinity, minHeight: 52)
                                     .padding(.horizontal)
-                                    .foregroundColor(.white)
-                                    .background(Theme.secondary)
+                                    .foregroundColor(Theme.primary)
+                                    .background(.white)
                                     .cornerRadius(18)
                                 }
 
-                                // Settings
                                 Button(action: {
                                     showingSettings = true
                                 }) {
@@ -125,8 +121,8 @@ struct HomeView: View {
                                     .font(.headline)
                                     .frame(maxWidth: .infinity, minHeight: 52)
                                     .padding(.horizontal)
-                                    .foregroundColor(.white)
-                                    .background(Theme.secondary)
+                                    .foregroundColor(Theme.primary)
+                                    .background(.white)
                                     .cornerRadius(18)
                                 }
                             }
@@ -147,31 +143,37 @@ struct HomeView: View {
             }
             .onAppear {
                 NotificationManager.shared.requestAuthorization()
+                setupNotifications()
+                updateNotificationBadge()
                 checkAndGenerateDailyQuizzes()
             }
+            .onChange(of: activeTimelines.count) { _, _ in
+                updateNotificationBadge()
+            }
+            
         }
     }
     
+    // Check if today's quizzes need generation for any timeline
     private func checkAndGenerateDailyQuizzes() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         
         for timeline in activeTimelines {
-            // Get today's quizzes
             let todayQuizzes = timeline.dailyQuizzes.filter { quiz in
                 calendar.isDate(quiz.date, inSameDayAs: today)
             }
             
-            // Check if any of today's quizzes are empty (not generated yet)
             let needsGeneration = todayQuizzes.contains { $0.questions.isEmpty }
             
             if needsGeneration {
                 generateDailyQuizzesFor(timeline: timeline, date: today)
-                return // Generate one timeline at a time
+                return
             }
         }
     }
     
+    // Generate questions for today's empty quizzes
     private func generateDailyQuizzesFor(timeline: ExamTimeline, date: Date) {
         isGeneratingDailyQuizzes = true
         generationProgress = 0.1
@@ -192,12 +194,10 @@ struct HomeView: View {
         
         let notesArray = timeline.notes.map { $0.content }
         
-        // Get all previously used topics to avoid repetition
         let existingTopics = timeline.dailyQuizzes
             .filter { !$0.questions.isEmpty }
             .map { $0.topic }
         
-        // Simulate progress during API call
         let progressTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { timer in
             DispatchQueue.main.async {
                 if self.generationProgress < 0.65 {
@@ -211,7 +211,7 @@ struct HomeView: View {
             notes: notesArray,
             topicsWanted: 3,
             questionsPerTopic: 10,
-            existingTopics: existingTopics // Pass existing topics
+            existingTopics: existingTopics
         ) { result in
             DispatchQueue.main.async {
                 progressTimer.invalidate()
@@ -232,6 +232,7 @@ struct HomeView: View {
                         return
                     }
                     
+                    // Populate quizzes with generated questions
                     for (index, quiz) in todayQuizzes.enumerated() {
                         let topicIndex = index % topicKeys.count
                         let topic = topicKeys[topicIndex]
@@ -241,7 +242,6 @@ struct HomeView: View {
                             timeline.dailyQuizzes[quizIdx].questions.removeAll()
                             
                             if let generatedQuestions = topicMap[topic] {
-                                // Take exactly 10 questions
                                 let questionsToUse = Array(generatedQuestions.prefix(10))
                                 
                                 for genQ in questionsToUse {
@@ -256,7 +256,7 @@ struct HomeView: View {
                                     timeline.dailyQuizzes[quizIdx].questions.append(question)
                                 }
                                 
-                                // Pad to 10 if needed
+                                // Pad to 10 questions if needed
                                 while timeline.dailyQuizzes[quizIdx].questions.count < 10 {
                                     let paddingQ = QuizQuestion(
                                         question: "Question about \(topic.lowercased()): Explain a concept.",
@@ -312,6 +312,9 @@ struct HomeView: View {
         do {
             try modelContext.save()
             
+            WidgetCenter.shared.reloadAllTimelines()
+            print("Widget refreshed after daily generation")
+            
             generationProgress = 1.0
             generationStatus = "Ready!"
             
@@ -325,50 +328,67 @@ struct HomeView: View {
     }
 }
 
+extension HomeView {
+    private func updateNotificationBadge() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        var incompleteCount = 0
+        
+        for timeline in activeTimelines {
+            let todayQuizzes = timeline.dailyQuizzes.filter { quiz in
+                calendar.isDate(quiz.date, inSameDayAs: today) && !quiz.isCompleted
+            }
+            incompleteCount += todayQuizzes.count
+        }
+        
+        NotificationManager.shared.updateBadgeCount(incompleteQuizCount: incompleteCount)
+    }
+    
+    private func setupNotifications() {
+        let notificationsEnabled = UserDefaults.standard.bool(forKey: "notificationsEnabled")
+        let notificationTime = UserDefaults.standard.integer(forKey: "notificationTime")
+        
+        if notificationsEnabled {
+            NotificationManager.shared.requestAuthorization { granted in
+                if granted {
+                    NotificationManager.shared.scheduleDailyReminders(at: notificationTime > 0 ? notificationTime : 9)
+                }
+            }
+        }
+        
+        updateNotificationBadge()
+    }
+}
+
 struct DailyQuizGenerationOverlay: View {
     let progress: Double
     let status: String
     
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4)
+            Color.black.opacity(0.6)
                 .ignoresSafeArea()
             
             VStack(spacing: 30) {
-                ZStack {
-                    Circle()
-                        .stroke(Theme.primary.opacity(0.2), lineWidth: 10)
-                        .frame(width: 120, height: 120)
-                    
-                    Circle()
-                        .trim(from: 0, to: progress)
-                        .stroke(Theme.primary, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                        .frame(width: 120, height: 120)
-                        .rotationEffect(.degrees(-90))
-                        .animation(.easeInOut(duration: 0.5), value: progress)
-                    
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 40))
-                        .foregroundColor(Theme.primary)
-                }
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(2.5)
+                    .frame(width: 120, height: 120)
                 
                 VStack(spacing: 10) {
                     Text("Generating Today's Quizzes")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                     
                     Text(status)
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    Text("\(Int(progress * 100))%")
-                        .font(.headline)
-                        .foregroundColor(Theme.primary)
+                        .foregroundColor(.white.opacity(0.8))
                 }
             }
             .padding(40)
-            .background(Theme.cardBackground)
+            .background(Color.white.opacity(0.15))
             .cornerRadius(30)
             .shadow(radius: 20)
         }
@@ -379,7 +399,15 @@ struct ActiveTimelineCard: View {
     let timeline: ExamTimeline
     
     private var daysUntilExam: Int {
-        Calendar.current.dateComponents([.day], from: Date(), to: timeline.examDate).day ?? 0
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: Date())
+        let startOfExamDate = calendar.startOfDay(for: timeline.examDate)
+        
+        guard let days = calendar.dateComponents([.day], from: startOfToday, to: startOfExamDate).day else {
+            return 0
+        }
+        
+        return max(0, days)
     }
     
     private var completedQuizzes: Int {
@@ -393,32 +421,38 @@ struct ActiveTimelineCard: View {
     var body: some View {
         HStack {
             Circle()
-                .fill(Theme.secondary)
+                .fill(.white)
                 .frame(width: 50, height: 50)
                 .overlay(
-                    Text("\(daysUntilExam)")
-                        .font(.headline)
-                        .foregroundColor(.white)
+                    VStack(spacing: 0) {
+                        Text("\(daysUntilExam)")
+                            .font(.headline)
+                            .foregroundColor(Theme.primary)
+                        Text("days")
+                            .font(.system(size: 8))
+                            .foregroundColor(Theme.primary)
+                    }
                 )
             
             VStack(alignment: .leading, spacing: 5) {
                 Text(timeline.examName)
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.leading)
                 
                 Text("\(completedQuizzes)/\(totalQuizzes) quizzes completed")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.8))
                 
                 Text("Exam: \(timeline.examDate, style: .date)")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.8))
             }
             
             Spacer()
             
             Image(systemName: "chevron.right")
-                .foregroundColor(Theme.primary)
+                .foregroundColor(.white)
         }
         .padding()
         .cardStyle()

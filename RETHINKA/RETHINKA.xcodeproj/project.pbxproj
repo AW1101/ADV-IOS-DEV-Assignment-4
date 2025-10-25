@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		383C0B012EAF06A7002D94AB /* SwiftData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 383C0B002EAF06A7002D94AB /* SwiftData.framework */; };
 		38A252472E9E0D4900FC1F8D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 38A252442E9E0D4900FC1F8D /* Assets.xcassets */; };
 		38A252492E9E0D4900FC1F8D /* RETHINKAApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A252462E9E0D4900FC1F8D /* RETHINKAApp.swift */; };
 		38A252D02E9E1D3400FC1F8D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38A252B32E9E1BE900FC1F8D /* WidgetKit.framework */; };
@@ -15,6 +16,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		383C0AFB2EAF061D002D94AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3886F2852E9E0CAE004E0D76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3886F28C2E9E0CAE004E0D76;
+			remoteInfo = RETHINKA;
+		};
 		38A252DE2E9E1D3500FC1F8D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 3886F2852E9E0CAE004E0D76 /* Project object */;
@@ -39,12 +47,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		383C0AF72EAF061D002D94AB /* RETHINKATests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RETHINKATests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		383C0B002EAF06A7002D94AB /* SwiftData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk/System/Library/Frameworks/SwiftData.framework; sourceTree = DEVELOPER_DIR; };
 		3886F28D2E9E0CAE004E0D76 /* RETHINKA.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RETHINKA.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		38A252442E9E0D4900FC1F8D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		38A252462E9E0D4900FC1F8D /* RETHINKAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RETHINKAApp.swift; sourceTree = "<group>"; };
 		38A2528C2E9E1BA200FC1F8D /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		38A252B32E9E1BE900FC1F8D /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		38A252CF2E9E1D3400FC1F8D /* RETHINKAWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RETHINKAWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		38CA08E62EA752B700BD4325 /* RETHINKAWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RETHINKAWidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -52,6 +63,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AIQuestionGenerator.swift,
+				AppDelegate.swift,
 				NotificationsManager.swift,
 				Theme.swift,
 			);
@@ -73,13 +85,35 @@
 			);
 			target = 38A252CE2E9E1D3400FC1F8D /* RETHINKAWidgetExtension */;
 		};
+		38CA08E22EA7320300BD4325 /* Exceptions for "Models" folder in "RETHINKAWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CourseNote.swift,
+				ExamTimeline.swift,
+				QuizQuestion.swift,
+			);
+			target = 38A252CE2E9E1D3400FC1F8D /* RETHINKAWidgetExtension */;
+		};
+		38CA09202EAC3EB600BD4325 /* Exceptions for "RETHINKAWidget" folder in "RETHINKA" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				TimelineSelectionIntent.swift,
+			);
+			target = 3886F28C2E9E0CAE004E0D76 /* RETHINKA */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		383C0AF82EAF061D002D94AB /* RETHINKATests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = RETHINKATests;
+			sourceTree = "<group>";
+		};
 		38A252532E9E14BB00FC1F8D /* Models */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				38A252732E9E156200FC1F8D /* Exceptions for "Models" folder in "RETHINKA" target */,
+				38CA08E22EA7320300BD4325 /* Exceptions for "Models" folder in "RETHINKAWidgetExtension" target */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -100,6 +134,7 @@
 		38A252D22E9E1D3400FC1F8D /* RETHINKAWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				38CA09202EAC3EB600BD4325 /* Exceptions for "RETHINKAWidget" folder in "RETHINKA" target */,
 				38A252E42E9E1D3500FC1F8D /* Exceptions for "RETHINKAWidget" folder in "RETHINKAWidgetExtension" target */,
 			);
 			path = RETHINKAWidget;
@@ -108,6 +143,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		383C0AF42EAF061D002D94AB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				383C0B012EAF06A7002D94AB /* SwiftData.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3886F28A2E9E0CAE004E0D76 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -130,12 +173,14 @@
 		3886F2842E9E0CAE004E0D76 = {
 			isa = PBXGroup;
 			children = (
+				38CA08E62EA752B700BD4325 /* RETHINKAWidgetExtension.entitlements */,
 				38A252462E9E0D4900FC1F8D /* RETHINKAApp.swift */,
 				38A252532E9E14BB00FC1F8D /* Models */,
 				38A252542E9E14BB00FC1F8D /* Utilities */,
 				38A252562E9E14BB00FC1F8D /* Views */,
 				38A252442E9E0D4900FC1F8D /* Assets.xcassets */,
 				38A252D22E9E1D3400FC1F8D /* RETHINKAWidget */,
+				383C0AF82EAF061D002D94AB /* RETHINKATests */,
 				38A252892E9E1BA200FC1F8D /* Frameworks */,
 				3886F28E2E9E0CAE004E0D76 /* Products */,
 			);
@@ -146,6 +191,7 @@
 			children = (
 				3886F28D2E9E0CAE004E0D76 /* RETHINKA.app */,
 				38A252CF2E9E1D3400FC1F8D /* RETHINKAWidgetExtension.appex */,
+				383C0AF72EAF061D002D94AB /* RETHINKATests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -153,6 +199,7 @@
 		38A252892E9E1BA200FC1F8D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				383C0B002EAF06A7002D94AB /* SwiftData.framework */,
 				38A2528C2E9E1BA200FC1F8D /* SwiftUI.framework */,
 				38A252B32E9E1BE900FC1F8D /* WidgetKit.framework */,
 			);
@@ -162,6 +209,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		383C0AF62EAF061D002D94AB /* RETHINKATests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 383C0AFF2EAF061D002D94AB /* Build configuration list for PBXNativeTarget "RETHINKATests" */;
+			buildPhases = (
+				383C0AF32EAF061D002D94AB /* Sources */,
+				383C0AF42EAF061D002D94AB /* Frameworks */,
+				383C0AF52EAF061D002D94AB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				383C0AFC2EAF061D002D94AB /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				383C0AF82EAF061D002D94AB /* RETHINKATests */,
+			);
+			name = RETHINKATests;
+			packageProductDependencies = (
+			);
+			productName = RETHINKATests;
+			productReference = 383C0AF72EAF061D002D94AB /* RETHINKATests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		3886F28C2E9E0CAE004E0D76 /* RETHINKA */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3886F2982E9E0CAF004E0D76 /* Build configuration list for PBXNativeTarget "RETHINKA" */;
@@ -218,6 +288,10 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					383C0AF62EAF061D002D94AB = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 3886F28C2E9E0CAE004E0D76;
+					};
 					3886F28C2E9E0CAE004E0D76 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
@@ -242,11 +316,19 @@
 			targets = (
 				3886F28C2E9E0CAE004E0D76 /* RETHINKA */,
 				38A252CE2E9E1D3400FC1F8D /* RETHINKAWidgetExtension */,
+				383C0AF62EAF061D002D94AB /* RETHINKATests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		383C0AF52EAF061D002D94AB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3886F28B2E9E0CAE004E0D76 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -265,6 +347,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		383C0AF32EAF061D002D94AB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3886F2892E9E0CAE004E0D76 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -283,6 +372,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		383C0AFC2EAF061D002D94AB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3886F28C2E9E0CAE004E0D76 /* RETHINKA */;
+			targetProxy = 383C0AFB2EAF061D002D94AB /* PBXContainerItemProxy */;
+		};
 		38A252DF2E9E1D3500FC1F8D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 38A252CE2E9E1D3400FC1F8D /* RETHINKAWidgetExtension */;
@@ -291,6 +385,48 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		383C0AFD2EAF061D002D94AB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DR2SLY9DFU;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.A4.RETHINKATests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RETHINKA.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RETHINKA";
+			};
+			name = Debug;
+		};
+		383C0AFE2EAF061D002D94AB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DR2SLY9DFU;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.A4.RETHINKATests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RETHINKA.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RETHINKA";
+			};
+			name = Release;
+		};
 		3886F2962E9E0CAF004E0D76 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -415,10 +551,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = RETHINKA.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 36LSTRPD92;
+				DEVELOPMENT_TEAM = DR2SLY9DFU;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -447,10 +585,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = RETHINKA.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 36LSTRPD92;
+				DEVELOPMENT_TEAM = DR2SLY9DFU;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -479,9 +619,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = RETHINKAWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 36LSTRPD92;
+				DEVELOPMENT_TEAM = DR2SLY9DFU;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RETHINKAWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = RETHINKAWidget;
@@ -509,9 +650,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = RETHINKAWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 36LSTRPD92;
+				DEVELOPMENT_TEAM = DR2SLY9DFU;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RETHINKAWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = RETHINKAWidget;
@@ -537,6 +679,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		383C0AFF2EAF061D002D94AB /* Build configuration list for PBXNativeTarget "RETHINKATests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				383C0AFD2EAF061D002D94AB /* Debug */,
+				383C0AFE2EAF061D002D94AB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		3886F2882E9E0CAE004E0D76 /* Build configuration list for PBXProject "RETHINKA" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -5,6 +5,7 @@
 //  Created by Aston Walsh on 12/10/2025.
 //
 
+import WidgetKit
 import SwiftUI
 import SwiftData
 
@@ -30,18 +31,17 @@ struct QuizReviewView: View {
             
             ScrollView {
                 VStack(spacing: 25) {
-                    // Header Card
                     VStack(spacing: 15) {
                         HStack {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text("Day \(quiz.dayNumber) Quiz")
                                     .font(.title2)
                                     .fontWeight(.bold)
-                                    .foregroundColor(Theme.primary)
+                                    .foregroundColor(.white)
                                 
                                 Text(quiz.topic)
                                     .font(.subheadline)
-                                    .foregroundColor(Theme.secondary)
+                                    .foregroundColor(.white.opacity(0.8))
                             }
                             
                             Spacer()
@@ -62,7 +62,7 @@ struct QuizReviewView: View {
                         HStack(spacing: 20) {
                             StatPill(icon: "checkmark.circle.fill", value: "\(correctCount)", label: "Correct", color: .green)
                             StatPill(icon: "xmark.circle.fill", value: "\(quiz.questions.count - correctCount)", label: "Incorrect", color: .red)
-                            StatPill(icon: "calendar", value: completedDateString, label: "Completed", color: Theme.secondary)
+                            StatPill(icon: "calendar", value: completedDateString, label: "Completed", color: .white)
                         }
                     }
                     .padding()
@@ -86,7 +86,7 @@ struct QuizReviewView: View {
                     VStack(alignment: .leading, spacing: 15) {
                         Text("All Questions")
                             .font(.headline)
-                            .foregroundColor(Theme.primary)
+                            .foregroundColor(.white)
                             .padding(.horizontal)
                         
                         ForEach(Array(quiz.questions.enumerated()), id: \.element.id) { index, question in
@@ -143,6 +143,11 @@ struct QuizReviewView: View {
         
         do {
             try modelContext.save()
+            
+            // force widget refresh
+            WidgetCenter.shared.reloadAllTimelines()
+            print("Widget refreshed after quiz retake")
+            
             dismiss()
         } catch {
             print("Error resetting quiz: \(error)")
@@ -165,18 +170,18 @@ struct StatPill: View {
             Text(value)
                 .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundColor(.primary)
+                .foregroundColor(.white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
             
             Text(label)
                 .font(.caption2)
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.8))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
         .padding(.horizontal, 8)
-        .background(color.opacity(0.08))
+        .background(color.opacity(0.2))
         .cornerRadius(15)
     }
 }
@@ -194,7 +199,7 @@ struct QuestionReviewCard: View {
     }
     
     private var headerColor: Color {
-        isCorrect ? .green.opacity(0.1) : .red.opacity(0.1)
+        isCorrect ? .green.opacity(0.2) : .red.opacity(0.2)
     }
     
     var body: some View {
@@ -213,11 +218,11 @@ struct QuestionReviewCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(question.question)
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                     
                     Text(question.type == "textField" ? "Written Answer" : "Multiple Choice")
                         .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.8))
                 }
                 
                 Spacer()
@@ -246,10 +251,10 @@ struct QuestionReviewCard: View {
                         
                         Text(question.userAnswer ?? "No answer provided")
                             .font(.subheadline)
-                            .foregroundColor(.primary)
+                            .foregroundColor(.white)
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.blue.opacity(0.1))
+                            .background(Color.blue.opacity(0.2))
                             .cornerRadius(10)
                     }
                     
@@ -265,10 +270,10 @@ struct QuestionReviewCard: View {
                         
                         Text(question.correctAnswer)
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.white.opacity(0.9))
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.orange.opacity(0.1))
+                            .background(Color.orange.opacity(0.2))
                             .cornerRadius(10)
                     }
                 }
@@ -303,7 +308,7 @@ struct QuestionReviewCard: View {
                     if let selectedIndex = question.selectedAnswerIndex {
                         Text("You selected: \(question.options[selectedIndex])")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.white.opacity(0.8))
                     }
                     
                     Text("Correct answer: \(question.correctAnswer)")
@@ -312,17 +317,17 @@ struct QuestionReviewCard: View {
                         .foregroundColor(.green)
                 }
                 .padding()
-                .background(Color.orange.opacity(0.1))
+                .background(Color.orange.opacity(0.2))
                 .cornerRadius(15)
                 .padding(.horizontal)
             }
         }
         .padding()
-        .background(Theme.cardBackground)
+        .background(Color.white.opacity(0.15))
         .cornerRadius(20)
         .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .stroke(borderColor.opacity(0.5), lineWidth: 2)
+                .stroke(borderColor.opacity(0.4), lineWidth: 1.5)
         )
     }
 }
@@ -335,11 +340,11 @@ struct ReviewAnswerOption: View {
     
     private var backgroundColor: Color {
         if isCorrect {
-            return Color.green.opacity(0.15)
+            return Color.green.opacity(0.25)
         } else if isSelected {
-            return Color.red.opacity(0.15)
+            return Color.red.opacity(0.25)
         }
-        return Theme.cardBackground
+        return Color.white.opacity(0.1)
     }
     
     private var borderColor: Color {
@@ -348,7 +353,7 @@ struct ReviewAnswerOption: View {
         } else if isSelected {
             return .red
         }
-        return Theme.secondary.opacity(0.3)
+        return Color.white.opacity(0.3)
     }
     
     private var icon: String? {
@@ -370,7 +375,7 @@ struct ReviewAnswerOption: View {
         } else if isSelected {
             return .red
         }
-        return Theme.secondary
+        return .white
     }
     
     var body: some View {
@@ -387,7 +392,7 @@ struct ReviewAnswerOption: View {
             
             Text(option)
                 .font(.subheadline)
-                .foregroundColor(.primary)
+                .foregroundColor(.white)
                 .multilineTextAlignment(.leading)
             
             Spacer()
